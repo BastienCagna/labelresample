@@ -3,6 +3,18 @@ from soma import aims, aimsalgo
 
 
 def resample(input_image, transformation, output_vs=None, background=0):
+    """
+        Apply a tranformation and resample a labelled volume.
+
+        Parameters:
+            input_image: Path to the input volume (.nii or .nii.gz file)
+            transformation: Linear transformation file (.trm file)
+            output_vs: Output voxel size (default: None, no resampling)
+            background: Background value (default: 0)
+
+        Return:
+            resampled_vol: Transformed and resampled volume
+    """
     # Read inputs
     vol = aims.read(input_image)
 
@@ -12,14 +24,21 @@ def resample(input_image, transformation, output_vs=None, background=0):
         trm = aims.AffineTransformation3d(np.eye(4))
     inv_trm = trm.inverse()
 
-    if not output_vs:
+    if output_vs:
+        output_vs = np.array(output_vs)
+        
+        # New volume dimensions
+        resampling_ratio = np.array(vol.header()['voxel_size'][:3]) / output_vs
+        orig_dim = vol.header()['volume_dimension'][:3]
+        new_dim = list((resampling_ratio * orig_dim).astype(int))
+    else:
         output_vs = vol.header()['voxel_size'][:3]
+        new_dim = vol.header()['volume_dimension'][:3]
 
     # Transform the background
     # Using the inverse is more straightforward and supports non-linear
     # transforms
-    # FIXME: do not keep fixed size look. Use vol.header() ?
-    resampled = aims.Volume((100, 120, 100), dtype=vol.__array__().dtype)
+    resampled = aims.Volume(new_dim, dtype=vol.__array__().dtype)
     resampled.header()['voxel_size'] = output_vs
     # 0 order (nearest neightbours) resampling
     resampler = aimsalgo.ResamplerFactory(vol).getResampler(0)
