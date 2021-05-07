@@ -55,16 +55,17 @@ class LabelResample(Process):
         resampler.setRef(vol)
         resampler.resample_inv(vol, inv_trm, 0, resampled)
 
-        # # Create buckets
-        # bck = aims.BucketMap_VOID()
-        # bck.setSizeXYZT(*vol.header()['voxel_size'][:3], 1.)
-        # # build a single bucket from the volume values where voxel are non
-        # # equal to background value
-        # bk0 = bck[0]
-        # # TODO: This takes lot of times ==> parrallelize?
-        # for p in np.vstack(np.where(vol.__array__() != self.background)[:3]).T:
-        #     bk0[list(p)] = 1
-        #
+        # Create buckets
+
+        bck = aims.BucketMap_VOID()
+        bck.setSizeXYZT(*vol.header()['voxel_size'][:3], 1.)
+        # build a single bucket from the volume values where voxel are non
+        # equal to background value
+        bk0 = bck[0]
+        # TODO: This takes lot of times ==> parrallelize?
+        for p in np.vstack(np.where(vol.__array__() != self.background)[:3]).T:
+            bk0[list(p)] = 1
+
         # # Transform buckets
         # # /!\ this function has a bug for aims <= 5.0.1
         # bck2 = aimsalgo.resampleBucket(bck, trm, inv_trm, output_vs)
