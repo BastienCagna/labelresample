@@ -4,7 +4,7 @@ from soma import aims, aimsalgo
 
 def resample(input_image, transformation, output_vs=None, background=0):
     """
-        Apply a tranformation and resample a labelled volume.
+        Transform and resample a volume that as discret values
 
         Parameters
         ----------
