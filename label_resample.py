@@ -2,7 +2,8 @@ import numpy as np
 from soma import aims, aimsalgo
 
 
-def resample(input_image, transformation, output_vs=None, background=0):
+def resample(input_image, transformation, output_vs=None, background=0,
+             values=None):
     """
         Transform and resample a volume that as discret values
 
@@ -16,6 +17,9 @@ def resample(input_image, transformation, output_vs=None, background=0):
             Output voxel size (default: None, no resampling)
         background: int
             Background value (default: 0)
+        values: []
+            Array of unique values ordered by descendent priority. If not given,
+            priority is set by ascendent values
 
         Return
         ------
@@ -55,11 +59,15 @@ def resample(input_image, transformation, output_vs=None, background=0):
     resampler.resample_inv(vol, inv_trm, 0, resampled)
     resampled_dt = np.asarray(resampled)
 
+    if values is None:
+        values = sorted(np.unique(vol_dt[vol_dt != background]))
+    else:
+        # Reverse order as value are passed by descendent priority
+        values = values[::-1]
+
     # Create one bucket by value (except background)
     # FIXME: Create several buckets because I didn't understood how to add
     #  several bucket to a BucketMap
-    values = np.unique(vol_dt[vol_dt != background])
-    # TODO: add pissiblity to order values by priority
     for i, v in enumerate(values):
         bck = aims.BucketMap_VOID()
         bck.setSizeXYZT(*vol.header()['voxel_size'][:3], 1.)
